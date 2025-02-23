@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sam Tech</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600&family=Tajawal:wght@400;500&display=swap" rel="stylesheet">
+    <!-- إضافة مكتبة Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- إضافة مكتبة SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- إضافة مكتبة CryptoJS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <style>
+        body {
+            font-family: 'Cairo', 'Tajawal', 'Arial', sans-serif;
+            text-align: center;
+            direction: rtl;
+            background: #e3f2fd; /* لون خلفية أزرق هادئ */
+            color: #333;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        header {
+            background: linear-gradient(135deg, #1976d2, #2196f3);
+            color: white;
+            padding: 20px;
+            width: 100%;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+        header img {
+            width: 80px; /* حجم صورة الشعار */
+            height: auto;
+            border-radius: 50%; /* جعل الصورة دائرية */
+            border: 2px solid white; /* إطار أبيض حول الصورة */
+        }
+        header h1 {
+            margin: 0;
+            font-size: 36px;
+            font-family: 'Tajawal', sans-serif;
+            font-weight: bold;
+        }
+        header h2 {
+            margin: 10px 0 0;
+            font-size: 24px;
+            font-family: 'Cairo', sans-serif;
+            font-weight: normal;
+            color: #ffeb3b; /* لون أصفر */
+        }
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        .main-content h2 {
+            font-size: 28px;
+            color: #2c3e50;
+            margin-bottom: 20px;
+        }
+        .main-content button {
+            padding: 15px 30px;
+            border-radius: 5px;
+            border: none;
+            background: linear-gradient(135deg, #27ae60, #2ecc71);
+            color: white;
+            cursor: pointer;
+            font-size: 18px;
+            font-family: 'Tajawal', sans-serif;
+            transition: background 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .main-content button:hover {
+            background: linear-gradient(135deg, #2ecc71, #27ae60);
+        }
+        footer {
+            background: linear-gradient(135deg, #1976d2, #2196f3);
+            color: white;
+            padding: 15px;
+            width: 100%;
+            font-family: 'Cairo', sans-serif;
+            font-size: 14px;
+            box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.1);
+        }
+        footer p {
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <img src="logo.png" alt="شعار Sam Tech"> <!-- استبدل logo.png بمسار الصورة الفعلي -->
+        <div>
+            <h1><i class="fas fa-laptop-code"></i> Sam Tech سام تك</h1>
+            <h2>للحلول التقنية والفنية</h2>
+        </div>
+    </header>
+    <div class="main-content">
+        <h2>مرحبًا بك في Sam Tech</h2>
+        <button onclick="checkPassword()">
+            <i class="fas fa-sign-in-alt"></i> الانتقال إلى استيراد وتصدير جهات الاتصال
+        </button>
+    </div>
+    <footer>
+        <p><i class="fas fa-user"></i> تصميم / م.عبدالله الرجوي</p>
+        <p><i class="fas fa-phone"></i> تـ / 772237880</p>
+        <p><i class="fas fa-copyright"></i> جميع الحقوق محفوظة © 2025</p>
+    </footer>
+    <script>
+        // كلمة المرور المشفرة باستخدام SHA-256 (هاش)
+        const hashedPassword = "03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4"; // هاش كلمة المرور "1234"
+
+        function checkPassword() {
+            // طلب كلمة المرور من المستخدم
+            Swal.fire({
+                title: 'أدخل كلمة المرور',
+                input: 'password',
+                inputAttributes: {
+                    autocapitalize: 'off',
+                    autocorrect: 'off'
+                },
+                showCancelButton: true,
+                confirmButtonText: 'دخول',
+                cancelButtonText: 'إلغاء',
+                showLoaderOnConfirm: true,
+                preConfirm: (password) => {
+                    if (!password) {
+                        Swal.showValidationMessage('يجب إدخال كلمة المرور');
+                    }
+                    return password;
+                },
+                allowOutsideClick: () => !Swal.isLoading()
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const userPassword = result.value;
+
+                    // تشفير كلمة المرور المدخلة باستخدام SHA-256
+                    const userHashedPassword = CryptoJS.SHA256(userPassword).toString();
+
+                    // التحقق من تطابق الهاش
+                    if (userHashedPassword === hashedPassword) {
+                        // إذا كانت كلمة المرور صحيحة، انتقل إلى صفحة contacts.html
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'تم الدخول بنجاح!',
+                            text: 'جاري التوجيه إلى الصفحة...',
+                            timer: 2000,
+                            showConfirmButton: false
+                        }).then(() => {
+                            window.location.href = "contacts.html";
+                        });
+                    } else {
+                        // إذا كانت كلمة المرور خاطئة، عرض رسالة خطأ
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'كلمة المرور غير صحيحة',
+                            text: 'الرجاء المحاولة مرة أخرى.',
+                        });
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>
