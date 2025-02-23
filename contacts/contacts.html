@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>استيراد جهات الاتصال</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600&family=Tajawal:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Cairo', 'Tajawal', 'Arial', sans-serif;
+            text-align: center;
+            direction: rtl;
+            background: #e3f2fd; /* لون خلفية أزرق هادئ */
+            color: #333;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        header {
+            background: linear-gradient(135deg, #1976d2, #2196f3);
+            color: white;
+            padding: 20px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        header h1 {
+            margin: 0;
+            font-size: 36px;
+            font-family: 'Tajawal', sans-serif;
+            font-weight: bold;
+        }
+        .container {
+            max-width: 800px;
+            margin: 30px auto;
+            background: #fff;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            flex: 1;
+        }
+        h2 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 28px;
+            font-family: 'Tajawal', sans-serif;
+            font-weight: 600;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: #fff;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        th, td {
+            border: 1px solid #e0e0e0;
+            padding: 12px;
+            text-align: center;
+        }
+        th {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            font-weight: bold;
+            font-family: 'Cairo', sans-serif;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+        input[type="file"], input[type="text"] {
+            width: calc(100% - 20px);
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            font-family: 'Cairo', sans-serif;
+        }
+        button {
+            padding: 10px 20px;
+            border-radius: 5px;
+            border: none;
+            background: linear-gradient(135deg, #27ae60, #2ecc71);
+            color: white;
+            cursor: pointer;
+            font-size: 16px;
+            font-family: 'Tajawal', sans-serif;
+            transition: background 0.3s ease;
+        }
+        button:hover {
+            background: linear-gradient(135deg, #2ecc71, #27ae60);
+        }
+        #stats {
+            margin-top: 15px;
+            font-weight: bold;
+            color: #333;
+            font-size: 16px;
+            font-family: 'Cairo', sans-serif;
+        }
+        footer {
+            background: linear-gradient(135deg, #1976d2, #2196f3);
+            color: white;
+            padding: 15px;
+            font-family: 'Cairo', sans-serif;
+            font-size: 14px;
+            box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.1);
+        }
+        footer p {
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Sam Tech</h1>
+    </header>
+    <div class="container">
+        <h2>استيراد جهات الاتصال من ملف</h2>
+        <input type="file" id="fileInput" accept=".xlsx,.csv">
+        <button onclick="exportToVCF()">تصدير إلى VCF</button>
+        <input type="text" id="searchBox" placeholder="بحث عن اسم أو رقم" onkeyup="searchContacts()">
+        <p id="stats">عدد الأرقام المستوردة: 0</p>
+        <table id="contactsTable">
+            <thead>
+                <tr>
+                    <th>الاسم</th>
+                    <th>رقم الهاتف</th>
+                    <th>رقم هاتف المنزل</th>
+                    <th>العنوان</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+    <footer>
+        <p>تصميم / م.عبدالله الرجوي</p>
+        <p>تـ / 772237880</p>
+        <p>جميع الحقوق محفوظة © 2025</p>
+    </footer>
+    <script>
+        let contacts = [];
+        
+        document.getElementById('fileInput').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const json = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+                    
+                    contacts = json.slice(1).map(row => ({
+                        name: row[0]?.toString().trim() || "غير معروف",
+                        phone: row[1]?.toString().trim() || "غير متوفر",
+                        homePhone: row[2]?.toString().trim() || "غير متوفر",
+                        address: row[3]?.toString().trim() || "غير متوفر"
+                    })).filter(contact => contact.name !== "غير معروف" && contact.phone !== "غير متوفر");
+                    
+                    if (contacts.length === 0) {
+                        alert("لم يتم العثور على بيانات صالحة في الملف.");
+                        return;
+                    }
+                    
+                    displayContacts();
+                } catch (error) {
+                    alert("حدث خطأ أثناء قراءة الملف. تأكد من صحة البيانات.");
+                    console.error(error);
+                }
+            };
+            
+            reader.readAsArrayBuffer(file);
+        });
+
+        function displayContacts() {
+            const tbody = document.querySelector('#contactsTable tbody');
+            tbody.innerHTML = contacts.map(contact => `
+                <tr>
+                    <td>${contact.name}</td>
+                    <td>${contact.phone}</td>
+                    <td>${contact.homePhone}</td>
+                    <td>${contact.address}</td>
+                </tr>
+            `).join('');
+            document.getElementById('stats').innerText = `عدد الأرقام المستوردة: ${contacts.length}`;
+        }
+
+        function exportToVCF() {
+            if (contacts.length === 0) {
+                alert("لا توجد بيانات لتصديرها.");
+                return;
+            }
+            
+            const vcfContent = contacts.map(contact => `
+                BEGIN:VCARD
+                VERSION:3.0
+                FN:${contact.name}
+                TEL;TYPE=CELL:${contact.phone}
+                TEL;TYPE=HOME:${contact.homePhone}
+                ADR:;;${contact.address};;;;
+                END:VCARD
+            `).join('');
+            
+            const blob = new Blob([vcfContent], { type: 'text/vcard' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'contacts.vcf';
+            a.click();
+        }
+
+        function searchContacts() {
+            const query = document.getElementById('searchBox').value.toLowerCase();
+            const filtered = contacts.filter(c => 
+                c.name.toLowerCase().includes(query) || 
+                c.phone.includes(query) || 
+                c.homePhone.includes(query) ||
+                c.address.toLowerCase().includes(query)
+            );
+            
+            const tbody = document.querySelector('#contactsTable tbody');
+            tbody.innerHTML = filtered.map(contact => `
+                <tr>
+                    <td>${contact.name}</td>
+                    <td>${contact.phone}</td>
+                    <td>${contact.homePhone}</td>
+                    <td>${contact.address}</td>
+                </tr>
+            `).join('');
+        }
+    </script>
+</body>
+</html>
